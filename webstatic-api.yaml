@@ -1,0 +1,66 @@
+swagger: '2.0'
+info:
+  title: BucketButler API
+  version: 1.0.0
+  description: "Secure GCS Media Gateway | Author: Bopaiah Mekerira (linkedin.com/in/bopaiah/)"
+
+
+paths:
+  /media/{path=**}:
+    get:
+      x-google-backend:
+        address: ADDRESS_PLACEHOLDER
+        path_translation: APPEND_PATH_TO_ADDRESS
+      operationId: getMediaFile
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          x-google-override-response-content-type: false
+    head:
+      x-google-backend:
+        address: ADDRESS_PLACEHOLDER
+        path_translation: APPEND_PATH_TO_ADDRESS
+      operationId: headMediaFile
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          x-google-override-response-content-type: false
+  /{path=**}:
+    get:
+      x-google-backend:
+        address: ADDRESS_PLACEHOLDER
+        path_translation: APPEND_PATH_TO_ADDRESS
+      operationId: getStaticFile
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          x-google-override-response-content-type: false
+    head:
+      x-google-backend:
+        address: ADDRESS_PLACEHOLDER
+        path_translation: APPEND_PATH_TO_ADDRESS
+      operationId: headStaticFile
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Success"
+          x-google-override-response-content-type: false
