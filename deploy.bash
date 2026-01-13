@@ -9,14 +9,19 @@
 # ==============================================================================
 # CONFIGURATION
 # ==============================================================================
-export PROJECT_ID="${PROJECT_ID:-BucketButlerProject}"
-export REGION="${REGION:-us-central1}"
-export BUCKET_NAME="${BUCKET_NAME:-MySecureStorage}"
-export SERVICE_ACCOUNT_NAME="${SERVICE_ACCOUNT_NAME:-MySecureStorage-runtime-sa}"
-export FUNCTION_NAME="${FUNCTION_NAME:-MySecureStorage-bridge}"
-export API_ID="${API_ID:-MySecureStorage-api}"
-export API_CONFIG_ID="${API_CONFIG_ID:-MySecureStorage-config-v1}"
-export GATEWAY_ID="${GATEWAY_ID:-MySecureStorage-gateway}"
+export PROJECT_ID="${PROJECT_ID:-luvli-ai-tst}"
+export BUCKET_NAME="${BUCKET_NAME:-test-sgpore}"
+
+# Regional Settings
+# Note: API Gateway is not available in asia-southeast1, so we use asia-northeast1 for the Gateway.
+export FUNCTION_REGION="${FUNCTION_REGION:-asia-southeast1}"
+export GATEWAY_REGION="${GATEWAY_REGION:-asia-northeast1}"
+
+export SERVICE_ACCOUNT_NAME="${SERVICE_ACCOUNT_NAME:-test-sgpore-runtime-sa}"
+export FUNCTION_NAME="${FUNCTION_NAME:-test-sgpore-bridge}"
+export API_ID="${API_ID:-test-sgpore-api}"
+export API_CONFIG_ID="${API_CONFIG_ID:-test-sgpore-config-v1}"
+export GATEWAY_ID="${GATEWAY_ID:-test-sgpore-gateway}"
 
 # Fail fast on errors
 set -e
@@ -121,7 +126,7 @@ echo "[3/7] Deploying Cloud Function: $FUNCTION_NAME..."
 gcloud functions deploy $FUNCTION_NAME \
     --gen2 \
     --runtime=python311 \
-    --region=$REGION \
+    --region=$FUNCTION_REGION \
     --source=. \
     --entry-point=stream_file \
     --trigger-http \
@@ -142,7 +147,7 @@ echo "[4/7] Granting Gateway permission to invoke Function..."
 # So we grant that same SA the invoker role on the function.
 
 gcloud run services add-iam-policy-binding $FUNCTION_NAME \
-    --region=$REGION \
+    --region=$FUNCTION_REGION \
     --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/run.invoker" \
     --project=$PROJECT_ID
@@ -156,7 +161,7 @@ sleep 10
 echo "[5/7] Preparing OpenAPI Spec..."
 
 # Get the deployed function URL
-FUNCTION_URL=$(gcloud functions describe $FUNCTION_NAME --gen2 --region=$REGION --format="value(url)")
+FUNCTION_URL=$(gcloud functions describe $FUNCTION_NAME --gen2 --region=$FUNCTION_REGION --format="value(url)")
 echo "Function URL: $FUNCTION_URL"
 
 # Replace the placeholder in the YAML file with the actual URL
@@ -194,19 +199,19 @@ sleep 10
 # ==============================================================================
 echo "[7/7] Deploying API Gateway: $GATEWAY_ID..."
 
-if gcloud api-gateway gateways describe $GATEWAY_ID --location=$REGION --project=$PROJECT_ID > /dev/null 2>&1; then
+if gcloud api-gateway gateways describe $GATEWAY_ID --location=$GATEWAY_REGION --project=$PROJECT_ID > /dev/null 2>&1; then
     echo "Updating existing gateway..."
     gcloud api-gateway gateways update $GATEWAY_ID \
         --api=$API_ID \
         --api-config=$CONFIG_ID \
-        --location=$REGION \
+        --location=$GATEWAY_REGION \
         --project=$PROJECT_ID
 else
     echo "Creating new gateway..."
     gcloud api-gateway gateways create $GATEWAY_ID \
         --api=$API_ID \
         --api-config=$CONFIG_ID \
-        --location=$REGION \
+        --location=$GATEWAY_REGION \
         --project=$PROJECT_ID
 fi
 
@@ -216,7 +221,7 @@ sleep 10
 # ==============================================================================
 # DONE
 # ==============================================================================
-GATEWAY_URL=$(gcloud api-gateway gateways describe $GATEWAY_ID --location=$REGION --project=$PROJECT_ID --format="value(defaultHostname)")
+GATEWAY_URL=$(gcloud api-gateway gateways describe $GATEWAY_ID --location=$GATEWAY_REGION --project=$PROJECT_ID --format="value(defaultHostname)")
 echo "=============================================================================="
 
 # Simple Verification

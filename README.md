@@ -1,6 +1,6 @@
 # BucketButler 🛡️🪣
 
-**BucketButler** is a high-performance, secure media delivery gateway built with Python and Google Cloud Functions. It provides a controlled interface for streaming files from Google Cloud Storage (GCS) to web applications, adding an essential layer of security and access control between your private storage buckets and the public internet.
+**BucketButler** is a high-performance, secure media delivery gateway built with Python and Google Cloud Functions. It provides a controlled interface for streaming files from Google Cloud Storage (GCS) to web applications, adding an essential layer of security and access control between your private storage buckets and the public internet. Note that **API Gateway is only available in certain regions**, so the script allows you to specify a different region for the Gateway and the Function.
 
 ---
 
@@ -41,7 +41,11 @@ The `deploy.bash` script handles injecting these variables into the Cloud Functi
 ### 4. One-Step Deployment 🚀
 BucketButler includes a comprehensive deployment script that automates the entire GCP infrastructure setup, including API enablement, IAM service account configuration, Cloud Function deployment, and API Gateway setup.
 
-Before running, update the variables in `deploy.bash` (PROJECT_ID, REGION, BUCKET_NAME, etc.) to match your environment.
+Before running, update the variables in `deploy.bash` to match your environment:
+- `PROJECT_ID`: Your GCP Project ID.
+- `BUCKET_NAME`: The GCS bucket you want to serve from.
+- `FUNCTION_REGION`: The region for your Cloud Function (e.g., `asia-southeast1`).
+- `GATEWAY_REGION`: A supported region for API Gateway (e.g., `asia-northeast1`).
 
 ```bash
 chmod +x deploy.bash
@@ -50,10 +54,12 @@ chmod +x deploy.bash
 
 This script will:
 - Enable all required Google Cloud APIs.
-- Create and configure a dedicated Service Account with restricted permissions.
-- Deploy the Python Cloud Function (Gen 2).
-- Configure the Google API Gateway with your OpenAPI spec.
-- Provide you with the final Gateway URL and perform a connection test.
+- Create and configure a dedicated Service Account.
+- Deploy the Python Cloud Function (Gen 2) to your `$FUNCTION_REGION`.
+- Configure the Google API Gateway in your `$GATEWAY_REGION`.
+- Provide you with the final Gateway URL and perform a connectivity test.
+
+> **CRITICAL**: Ensure your `bucketlist.acl` is uploaded to the root of your bucket (`gs://your-bucket/bucketlist.acl`) before testing, otherwise you will receive a `403 Access Denied` response.
 
 ---
 
